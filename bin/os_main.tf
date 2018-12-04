@@ -1,13 +1,11 @@
 # Openstack credentials and instance settings, SSH Variables and current image version
-variable username {}
 
-variable password {}
 variable auth_url {}
-variable user_domain_id {}
-variable domain_id {}
+variable username {}
+variable password {}
+variable domain_name {}
+variable tenant_name {}
 variable region_name {}
-variable project_id {}
-variable project_name {}
 variable api_version {}
 variable current_version {}
 variable kubenow_image_name {}
@@ -39,6 +37,11 @@ resource "openstack_networking_floatingip_v2" "fip_1" {
   pool = "${var.os_pool_name}"
 }
 
+resource "openstack_compute_floatingip_associate_v2" "fip_1" {
+  floating_ip = "${openstack_networking_floatingip_v2.fip_1.address}"
+  instance_id = "${openstack_compute_instance_v2.kubenow-image-export.id}"
+}
+
 # No terraform provider as we are using environmental variables
 # Directly defining the instance resource details.
 resource "openstack_compute_instance_v2" "kubenow-image-export" {
@@ -47,7 +50,6 @@ resource "openstack_compute_instance_v2" "kubenow-image-export" {
   flavor_name     = "8C-8GB-50GB"
   key_pair        = "${openstack_compute_keypair_v2.main.name}"
   security_groups = ["default"]
-  floating_ip     = "${openstack_networking_floatingip_v2.fip_1.address}"
 
   network {
     uuid = "${var.network_id}"
